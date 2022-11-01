@@ -1,0 +1,47 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: controller-publisher
+  labels:
+    app: controller-publisher
+spec:
+  selector:
+    app: controller-publisher
+  ports:
+    - protocol: TCP
+      port: 9091
+      targetPort: 80
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: controller-publisher
+  labels:
+    app: controller-publisher
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: controller-publisher
+  template:
+    metadata:
+      labels:
+        app: controller-publisher
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "controller-publisher"
+        dapr.io/app-port: "80"
+    spec:
+      containers:
+        - name: controller-publisher
+          image: acrsrx.azurecr.io/dapr-controller-publisher:v1
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 80
+          imagePullPolicy: Always
+      imagePullSecrets:
+        - name: regcred

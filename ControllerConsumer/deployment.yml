@@ -1,0 +1,47 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: controller
+  labels:
+    app: controller
+spec:
+  selector:
+    app: controller
+  ports:
+    - protocol: TCP
+      port: 9091
+      targetPort: 80
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: controller
+  labels:
+    app: controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: controller
+  template:
+    metadata:
+      labels:
+        app: controller
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "controller"
+        dapr.io/app-port: "80"
+    spec:
+      containers:
+        - name: controller
+          image: acrsrx.azurecr.io/daprtest:v1
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 80
+          imagePullPolicy: Always
+      imagePullSecrets:
+        - name: regcred
